@@ -12,11 +12,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const text = await file.text()
+  const text = await file.text()
     console.log('📄 File content preview:', text.substring(0, 200) + '...')
-    
+
     // Parse CSV with improved error handling
-    const parsed = parseCatalogCSV(text)
+  const parsed = parseCatalogCSV(text)
     console.log('✅ Parsed products:', parsed.length, 'items')
 
     // Add org_slug to each row

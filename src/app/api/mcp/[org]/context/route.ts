@@ -22,9 +22,9 @@ export async function OPTIONS() {
 
 export async function GET(
   request: Request,
-  { params }: { params: { org: string } }
+  { params }: { params: Promise<{ org: string }> }
 ) {
-  const { org } = params
+  const { org } = await params
 
   try {
     // Fetch products for this organization

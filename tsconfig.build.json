@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./",
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "strict": false,
+    "noEmit": false
+  },
+  "include": [
+    "mcp/**/*",
+    "scripts/**/*",
+    "lib/**/*",
+    "types/**/*",
+    "connectors/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/**/*"
+  ]
+} 

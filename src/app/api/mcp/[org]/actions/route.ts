@@ -21,9 +21,9 @@ export async function OPTIONS() {
 
 export async function POST(
   request: Request,
-  { params }: { params: { org: string } }
+  { params }: { params: Promise<{ org: string }> }
 ) {
-  const { org } = params
+  const { org } = await params
 
   try {
     const body: ActionRequest = await request.json()
@@ -137,11 +137,13 @@ export async function POST(
 
 export async function GET(
   request: Request,
-  { params }: { params: { org: string } }
+  { params }: { params: Promise<{ org: string }> }
 ) {
+  const { org } = await params
+  
   // Return available actions for this organization
   return NextResponse.json({
-    organization: params.org,
+    organization: org,
     availableActions: [
       {
         name: 'addToCart',

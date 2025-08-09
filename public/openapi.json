@@ -1,0 +1,481 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Beam Actions API",
+    "description": "HTTP Actions API for Beam e-commerce platform integration with ChatGPT and Perplexity",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Beam Support",
+      "url": "https://github.com/beam-ai"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/api/tools/find-products": {
+      "post": {
+        "summary": "Find Products",
+        "description": "Search for products by various criteria including text query, brand, category, price range, and custom attributes",
+        "operationId": "findProducts",
+        "tags": ["Products"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindProductsRequest"
+              },
+              "examples": {
+                "searchByQuery": {
+                  "summary": "Search snowboards",
+                  "value": {
+                    "shop_domain": "beam-devtest.myshopify.com",
+                    "query": "snowboard",
+                    "limit": 5
+                  }
+                },
+                "filterByPrice": {
+                  "summary": "Filter by price range",
+                  "value": {
+                    "org_slug": "demo-brand",
+                    "price_max": 900,
+                    "limit": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of products matching the criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductCard"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/tools/get-product-details": {
+      "post": {
+        "summary": "Get Product Details",
+        "description": "Get detailed information about a specific product including full attributes and images",
+        "operationId": "getProductDetails",
+        "tags": ["Products"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetProductDetailsRequest"
+              },
+              "examples": {
+                "byOrgSlug": {
+                  "summary": "Get product by org slug",
+                  "value": {
+                    "product_id": "3f7ecff6-9b09-457b-918e-871ad4cede78",
+                    "org_slug": "beam-devtest"
+                  }
+                },
+                "byShopDomain": {
+                  "summary": "Get product by shop domain",
+                  "value": {
+                    "product_id": "3f7ecff6-9b09-457b-918e-871ad4cede78",
+                    "shop_domain": "beam-devtest.myshopify.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Detailed product information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/tools/create-checkout-link": {
+      "post": {
+        "summary": "Create Checkout Link",
+        "description": "Generate a checkout/purchase link for a product, with support for Shopify cart links",
+        "operationId": "createCheckoutLink",
+        "tags": ["Checkout"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutLinkRequest"
+              },
+              "examples": {
+                "basicCheckout": {
+                  "summary": "Basic checkout link",
+                  "value": {
+                    "product_id": "3f7ecff6-9b09-457b-918e-871ad4cede78",
+                    "shop_domain": "beam-devtest.myshopify.com"
+                  }
+                },
+                "withVariantAndQty": {
+                  "summary": "Checkout with specific variant and quantity",
+                  "value": {
+                    "product_id": "3f7ecff6-9b09-457b-918e-871ad4cede78",
+                    "shop_domain": "beam-devtest.myshopify.com",
+                    "variant": "gid://shopify/ProductVariant/123456",
+                    "qty": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout link generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutLinkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-beam-api-key"
+      }
+    },
+    "schemas": {
+      "FindProductsRequest": {
+        "type": "object",
+        "properties": {
+          "org_slug": {
+            "type": "string",
+            "description": "Organization slug (e.g., 'demo-brand')"
+          },
+          "shop_domain": {
+            "type": "string",
+            "description": "Shopify shop domain (e.g., 'store.myshopify.com'). Alternative to org_slug."
+          },
+          "query": {
+            "type": "string",
+            "description": "Text search query (searches title, brand, category)"
+          },
+          "brand": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "array", "items": {"type": "string"}}
+            ],
+            "description": "Filter by brand name(s)"
+          },
+          "category": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "array", "items": {"type": "string"}}
+            ],
+            "description": "Filter by category name(s)"
+          },
+          "condition": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "array", "items": {"type": "string"}}
+            ],
+            "description": "Filter by condition (new, used, refurbished, etc.)"
+          },
+          "price_min": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Minimum price filter"
+          },
+          "price_max": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Maximum price filter"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "Filter by custom product attributes (exact match)"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Maximum number of results (default: 20)"
+          }
+        },
+        "anyOf": [
+          {"required": ["org_slug"]},
+          {"required": ["shop_domain"]}
+        ]
+      },
+      "GetProductDetailsRequest": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Unique product identifier"
+          },
+          "org_slug": {
+            "type": "string",
+            "description": "Organization slug"
+          },
+          "shop_domain": {
+            "type": "string",
+            "description": "Shopify shop domain. Alternative to org_slug."
+          }
+        },
+        "required": ["product_id"],
+        "anyOf": [
+          {"required": ["org_slug"]},
+          {"required": ["shop_domain"]}
+        ]
+      },
+      "CreateCheckoutLinkRequest": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Unique product identifier"
+          },
+          "org_slug": {
+            "type": "string",
+            "description": "Organization slug"
+          },
+          "shop_domain": {
+            "type": "string",
+            "description": "Shopify shop domain. Alternative to org_slug."
+          },
+          "variant": {
+            "type": "string",
+            "description": "Product variant ID (for Shopify products with multiple variants)"
+          },
+          "qty": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Quantity to add to cart (default: 1)"
+          }
+        },
+        "required": ["product_id"],
+        "anyOf": [
+          {"required": ["org_slug"]},
+          {"required": ["shop_domain"]}
+        ]
+      },
+      "ProductCard": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Unique product identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Product title"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product brand"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product category"
+          },
+          "price": {
+            "type": "number",
+            "nullable": true,
+            "description": "Product price"
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true,
+            "description": "Price currency (e.g., 'USD')"
+          },
+          "image": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary product image URL"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product page URL"
+          }
+        },
+        "required": ["product_id", "title"]
+      },
+      "ProductDetails": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Unique product identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Product title"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product brand"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product category"
+          },
+          "price": {
+            "type": "number",
+            "nullable": true,
+            "description": "Product price"
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true,
+            "description": "Price currency"
+          },
+          "quantity": {
+            "type": "number",
+            "nullable": true,
+            "description": "Available quantity"
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {"type": "string"},
+            "nullable": true,
+            "description": "All product image URLs"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stock keeping unit"
+          },
+          "attributes": {
+            "type": "object",
+            "nullable": true,
+            "description": "Additional product attributes"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "Data source (e.g., 'shopify', 'csv')"
+          }
+        },
+        "required": ["product_id", "title"]
+      },
+      "CheckoutLinkResponse": {
+        "type": "object",
+        "properties": {
+          "checkout_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Generated checkout/purchase URL"
+          }
+        },
+        "required": ["checkout_url"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details"
+          }
+        },
+        "required": ["error"]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request - invalid parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized - invalid or missing API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found - resource does not exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+} 

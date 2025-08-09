@@ -10,13 +10,13 @@ interface Product {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     org: string
-  }
+  }>
 }
 
 export default async function OrgPage({ params }: PageProps) {
-  const { org } = params
+  const { org } = await params
 
   // Fetch products for this organization
   const { data: products, error } = await supabase
